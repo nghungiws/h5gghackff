@@ -23,6 +23,14 @@
                 <span class="status-label">H5GG Status:</span>
                 <span id="h5ggStatus" class="status-value">Not Connected</span>
             </div>
+            <div class="status-item">
+                <span class="status-label">Level:</span>
+                <span id="userLevel" class="status-value">1</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">XP:</span>
+                <span id="userXP" class="status-value">0/100</span>
+            </div>
         </div>
 
         <div class="hack-panel">
@@ -131,6 +139,39 @@
                 </div>
             </div>
             <div id="memoryResults" class="memory-results"></div>
+        </div>
+
+        <div class="level-panel">
+            <h3><i class="fas fa-trophy"></i> Level & Achievements</h3>
+            <div class="level-info">
+                <div class="level-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Level:</span>
+                        <span id="levelDisplay" class="stat-value">1</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">XP:</span>
+                        <span id="xpDisplay" class="stat-value">0/100</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Hacks Used:</span>
+                        <span id="hacksUsedDisplay" class="stat-value">0</span>
+                    </div>
+                </div>
+                <div class="xp-bar">
+                    <div id="xpProgress" class="xp-progress"></div>
+                </div>
+                <div class="achievements">
+                    <h4>Achievements</h4>
+                    <div id="achievementsList" class="achievements-list">
+                        <div class="achievement-item locked">First Hack</div>
+                        <div class="achievement-item locked">Hack Master</div>
+                        <div class="achievement-item locked">Memory Expert</div>
+                        <div class="achievement-item locked">Level 10</div>
+                        <div class="achievement-item locked">Perfect Hack</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="log-panel">

@@ -5,12 +5,18 @@ class H5GGIntegration {
         this.gameProcess = null;
         this.memoryRegions = [];
         this.searchResults = [];
+        this.h5ggAPI = null;
+        this.connectionStatus = 'disconnected';
+        this.retryCount = 0;
+        this.maxRetries = 3;
         this.init();
     }
 
     init() {
         this.checkH5GGAvailability();
         this.setupMemoryMaps();
+        this.setupEventListeners();
+        this.startConnectionMonitoring();
     }
 
     // Check if H5GG is available
@@ -19,16 +25,77 @@ class H5GGIntegration {
             // Check for H5GG global object
             if (typeof window.h5gg !== 'undefined') {
                 this.isH5GGAvailable = true;
+                this.h5ggAPI = window.h5gg;
+                this.connectionStatus = 'available';
                 console.log('H5GG detected and available');
+                this.initializeH5GGAPI();
                 return true;
             } else {
-                console.log('H5GG not detected');
+                console.log('H5GG not detected, using simulation mode');
+                this.connectionStatus = 'simulation';
                 return false;
             }
         } catch (error) {
             console.error('Error checking H5GG availability:', error);
+            this.connectionStatus = 'error';
             return false;
         }
+    }
+
+    // Initialize H5GG API
+    initializeH5GGAPI() {
+        try {
+            if (this.h5ggAPI) {
+                // Set up H5GG event listeners
+                this.h5ggAPI.on('connected', () => {
+                    this.connectionStatus = 'connected';
+                    console.log('H5GG connected successfully');
+                });
+
+                this.h5ggAPI.on('disconnected', () => {
+                    this.connectionStatus = 'disconnected';
+                    console.log('H5GG disconnected');
+                });
+
+                this.h5ggAPI.on('error', (error) => {
+                    console.error('H5GG error:', error);
+                    this.connectionStatus = 'error';
+                });
+            }
+        } catch (error) {
+            console.error('Error initializing H5GG API:', error);
+        }
+    }
+
+    // Setup event listeners
+    setupEventListeners() {
+        // Listen for H5GG availability changes
+        window.addEventListener('h5ggAvailable', () => {
+            this.checkH5GGAvailability();
+        });
+
+        // Listen for page visibility changes
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                this.checkH5GGAvailability();
+            }
+        });
+    }
+
+    // Start connection monitoring
+    startConnectionMonitoring() {
+        setInterval(() => {
+            if (this.connectionStatus === 'disconnected' && this.retryCount < this.maxRetries) {
+                this.retryConnection();
+            }
+        }, 5000);
+    }
+
+    // Retry connection
+    retryConnection() {
+        this.retryCount++;
+        console.log(`Retrying H5GG connection (${this.retryCount}/${this.maxRetries})`);
+        this.checkH5GGAvailability();
     }
 
     // Setup memory regions for Free Fire
@@ -91,37 +158,58 @@ class H5GGIntegration {
                 throw new Error('No game process connected');
             }
 
-            // Simulate memory read based on data type
             let value;
-            switch (dataType) {
-                case 'int8':
-                    value = Math.floor(Math.random() * 256) - 128;
-                    break;
-                case 'int16':
-                    value = Math.floor(Math.random() * 65536) - 32768;
-                    break;
-                case 'int32':
-                    value = Math.floor(Math.random() * 4294967296) - 2147483648;
-                    break;
-                case 'float':
-                    value = Math.random() * 1000 - 500;
-                    break;
-                case 'double':
-                    value = Math.random() * 10000 - 5000;
-                    break;
-                default:
-                    value = Math.floor(Math.random() * 1000);
+            
+            if (this.isH5GGAvailable && this.h5ggAPI) {
+                // Real H5GG API call
+                try {
+                    const result = await this.h5ggAPI.readMemory({
+                        address: address,
+                        type: dataType,
+                        pid: this.gameProcess.pid
+                    });
+                    value = result.value;
+                } catch (apiError) {
+                    console.warn('H5GG API read failed, using simulation:', apiError);
+                    value = this.simulateMemoryRead(dataType);
+                }
+            } else {
+                // Simulation mode
+                value = this.simulateMemoryRead(dataType);
             }
 
             return {
                 address: address,
                 value: value,
                 dataType: dataType,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                source: this.isH5GGAvailable ? 'h5gg' : 'simulation'
             };
         } catch (error) {
             console.error('Memory read failed:', error);
             return null;
+        }
+    }
+
+    // Simulate memory read
+    simulateMemoryRead(dataType) {
+        switch (dataType) {
+            case 'int8':
+                return Math.floor(Math.random() * 256) - 128;
+            case 'int16':
+                return Math.floor(Math.random() * 65536) - 32768;
+            case 'int32':
+                return Math.floor(Math.random() * 4294967296) - 2147483648;
+            case 'float':
+                return Math.random() * 1000 - 500;
+            case 'double':
+                return Math.random() * 10000 - 5000;
+            case 'string':
+                return 'Simulated String';
+            case 'bytes':
+                return new Uint8Array([0x48, 0x65, 0x6C, 0x6C, 0x6F]);
+            default:
+                return Math.floor(Math.random() * 1000);
         }
     }
 
@@ -132,20 +220,47 @@ class H5GGIntegration {
                 throw new Error('No game process connected');
             }
 
-            // Simulate memory write
-            console.log(`Writing ${dataType} value ${value} to address ${address}`);
+            let success = false;
+            
+            if (this.isH5GGAvailable && this.h5ggAPI) {
+                // Real H5GG API call
+                try {
+                    const result = await this.h5ggAPI.writeMemory({
+                        address: address,
+                        value: value,
+                        type: dataType,
+                        pid: this.gameProcess.pid
+                    });
+                    success = result.success;
+                    console.log(`H5GG: Writing ${dataType} value ${value} to address ${address} - ${success ? 'Success' : 'Failed'}`);
+                } catch (apiError) {
+                    console.warn('H5GG API write failed, using simulation:', apiError);
+                    success = this.simulateMemoryWrite(address, value, dataType);
+                }
+            } else {
+                // Simulation mode
+                success = this.simulateMemoryWrite(address, value, dataType);
+                console.log(`Simulation: Writing ${dataType} value ${value} to address ${address}`);
+            }
             
             return {
-                success: true,
+                success: success,
                 address: address,
                 value: value,
                 dataType: dataType,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                source: this.isH5GGAvailable ? 'h5gg' : 'simulation'
             };
         } catch (error) {
             console.error('Memory write failed:', error);
             return { success: false, error: error.message };
         }
+    }
+
+    // Simulate memory write
+    simulateMemoryWrite(address, value, dataType) {
+        // Simulate write success with 95% success rate
+        return Math.random() > 0.05;
     }
 
     // Memory search functionality
@@ -227,18 +342,26 @@ class H5GGIntegration {
                 throw new Error('No game process connected');
             }
 
-            // Simulate pattern scanning
-            const results = [];
-            const searchRange = endAddress - startAddress;
-            const maxResults = 50;
+            let results = [];
             
-            for (let i = 0; i < Math.min(maxResults, 5); i++) {
-                const address = startAddress + Math.floor(Math.random() * searchRange);
-                results.push({
-                    address: `0x${address.toString(16).toUpperCase()}`,
-                    pattern: pattern,
-                    mask: mask
-                });
+            if (this.isH5GGAvailable && this.h5ggAPI) {
+                // Real H5GG pattern scanning
+                try {
+                    const scanResult = await this.h5ggAPI.scanPattern({
+                        pattern: pattern,
+                        mask: mask,
+                        startAddress: startAddress,
+                        endAddress: endAddress,
+                        pid: this.gameProcess.pid
+                    });
+                    results = scanResult.matches || [];
+                } catch (apiError) {
+                    console.warn('H5GG pattern scan failed, using simulation:', apiError);
+                    results = this.simulatePatternScan(pattern, mask, startAddress, endAddress);
+                }
+            } else {
+                // Simulation mode
+                results = this.simulatePatternScan(pattern, mask, startAddress, endAddress);
             }
 
             console.log(`Found ${results.length} pattern matches`);
@@ -247,6 +370,161 @@ class H5GGIntegration {
             console.error('Pattern scan failed:', error);
             return [];
         }
+    }
+
+    // Simulate pattern scanning
+    simulatePatternScan(pattern, mask, startAddress, endAddress) {
+        const results = [];
+        const searchRange = endAddress - startAddress;
+        const maxResults = 50;
+        
+        for (let i = 0; i < Math.min(maxResults, 5); i++) {
+            const address = startAddress + Math.floor(Math.random() * searchRange);
+            results.push({
+                address: `0x${address.toString(16).toUpperCase()}`,
+                pattern: pattern,
+                mask: mask,
+                confidence: Math.random() * 100
+            });
+        }
+        
+        return results;
+    }
+
+    // Advanced memory scanning with multiple data types
+    async scanMemory(value, dataType = 'int32', startAddress = 0x10000000, endAddress = 0x50000000) {
+        try {
+            if (!this.gameProcess) {
+                throw new Error('No game process connected');
+            }
+
+            let results = [];
+            
+            if (this.isH5GGAvailable && this.h5ggAPI) {
+                // Real H5GG memory scanning
+                try {
+                    const scanResult = await this.h5ggAPI.scanMemory({
+                        value: value,
+                        type: dataType,
+                        startAddress: startAddress,
+                        endAddress: endAddress,
+                        pid: this.gameProcess.pid
+                    });
+                    results = scanResult.matches || [];
+                } catch (apiError) {
+                    console.warn('H5GG memory scan failed, using simulation:', apiError);
+                    results = this.simulateMemoryScan(value, dataType, startAddress, endAddress);
+                }
+            } else {
+                // Simulation mode
+                results = this.simulateMemoryScan(value, dataType, startAddress, endAddress);
+            }
+
+            console.log(`Found ${results.length} memory matches for value ${value}`);
+            return results;
+        } catch (error) {
+            console.error('Memory scan failed:', error);
+            return [];
+        }
+    }
+
+    // Simulate memory scanning
+    simulateMemoryScan(value, dataType, startAddress, endAddress) {
+        const results = [];
+        const searchRange = endAddress - startAddress;
+        const maxResults = 100;
+        
+        for (let i = 0; i < Math.min(maxResults, 10); i++) {
+            const address = startAddress + Math.floor(Math.random() * searchRange);
+            results.push({
+                address: `0x${address.toString(16).toUpperCase()}`,
+                value: value,
+                dataType: dataType,
+                region: this.getMemoryRegion(address)
+            });
+        }
+        
+        return results;
+    }
+
+    // Memory region analysis
+    analyzeMemoryRegions() {
+        const regions = [];
+        
+        this.memoryRegions.forEach(region => {
+            const analysis = {
+                name: region.name,
+                start: region.start,
+                end: region.end,
+                size: region.end - region.start,
+                description: region.description,
+                readOnly: region.readOnly,
+                usage: Math.random() * 100, // Simulated usage percentage
+                fragmentation: Math.random() * 50 // Simulated fragmentation
+            };
+            regions.push(analysis);
+        });
+        
+        return regions;
+    }
+
+    // Find memory patterns
+    async findMemoryPatterns(patterns) {
+        const results = [];
+        
+        for (const pattern of patterns) {
+            const matches = await this.scanPattern(pattern.pattern, pattern.mask, pattern.startAddress, pattern.endAddress);
+            results.push({
+                pattern: pattern.name,
+                matches: matches,
+                count: matches.length
+            });
+        }
+        
+        return results;
+    }
+
+    // Memory dump
+    async dumpMemory(startAddress, size) {
+        try {
+            if (!this.gameProcess) {
+                throw new Error('No game process connected');
+            }
+
+            let dump = null;
+            
+            if (this.isH5GGAvailable && this.h5ggAPI) {
+                // Real H5GG memory dump
+                try {
+                    const dumpResult = await this.h5ggAPI.dumpMemory({
+                        startAddress: startAddress,
+                        size: size,
+                        pid: this.gameProcess.pid
+                    });
+                    dump = dumpResult.data;
+                } catch (apiError) {
+                    console.warn('H5GG memory dump failed, using simulation:', apiError);
+                    dump = this.simulateMemoryDump(startAddress, size);
+                }
+            } else {
+                // Simulation mode
+                dump = this.simulateMemoryDump(startAddress, size);
+            }
+
+            return dump;
+        } catch (error) {
+            console.error('Memory dump failed:', error);
+            return null;
+        }
+    }
+
+    // Simulate memory dump
+    simulateMemoryDump(startAddress, size) {
+        const dump = new Uint8Array(size);
+        for (let i = 0; i < size; i++) {
+            dump[i] = Math.floor(Math.random() * 256);
+        }
+        return dump;
     }
 
     // Free Fire specific memory addresses (simulated)

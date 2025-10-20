@@ -11,6 +11,9 @@ function initializeApp() {
     // Initialize UI
     initializeUI();
     
+    // Initialize additional features
+    initializeAdditionalFeatures();
+    
     // Start status monitoring
     startStatusMonitoring();
     
@@ -226,6 +229,48 @@ function startStatusMonitoring() {
             freeFireHack.log('H5GG connection lost', 'error');
         }
     }, 5000);
+    
+    // Update level display
+    setInterval(() => {
+        updateLevelDisplay();
+    }, 1000);
+}
+
+function updateLevelDisplay() {
+    const levelInfo = freeFireHack.getLevelInfo();
+    
+    // Update level and XP displays
+    document.getElementById('userLevel').textContent = levelInfo.level;
+    document.getElementById('userXP').textContent = `${levelInfo.experience}/${levelInfo.experienceToNext}`;
+    document.getElementById('levelDisplay').textContent = levelInfo.level;
+    document.getElementById('xpDisplay').textContent = `${levelInfo.experience}/${levelInfo.experienceToNext}`;
+    document.getElementById('hacksUsedDisplay').textContent = levelInfo.stats.hacksUsed;
+    
+    // Update XP progress bar
+    const xpProgress = (levelInfo.experience / levelInfo.experienceToNext) * 100;
+    document.getElementById('xpProgress').style.width = `${xpProgress}%`;
+    
+    // Update achievements
+    updateAchievementsDisplay(levelInfo.achievements);
+}
+
+function updateAchievementsDisplay(achievements) {
+    const achievementItems = document.querySelectorAll('.achievement-item');
+    const achievementMap = {
+        'first_hack': 0,
+        'hack_master': 1,
+        'memory_expert': 2,
+        'level_10': 3,
+        'perfect_hack': 4
+    };
+    
+    achievementItems.forEach((item, index) => {
+        const achievementId = Object.keys(achievementMap).find(key => achievementMap[key] === index);
+        if (achievementId && achievements.includes(achievementId)) {
+            item.classList.remove('locked');
+            item.classList.add('unlocked');
+        }
+    });
 }
 
 // Keyboard shortcuts
@@ -248,6 +293,82 @@ document.addEventListener('keydown', function(event) {
         if (!freeFireHack.isConnected) {
             connectToH5GG();
         }
+    }
+    
+    // F1 - Toggle Aimbot
+    if (event.key === 'F1') {
+        event.preventDefault();
+        const aimbotCheckbox = document.getElementById('aimbot');
+        aimbotCheckbox.checked = !aimbotCheckbox.checked;
+        aimbotCheckbox.dispatchEvent(new Event('change'));
+    }
+    
+    // F2 - Toggle Wallhack
+    if (event.key === 'F2') {
+        event.preventDefault();
+        const wallhackCheckbox = document.getElementById('wallhack');
+        wallhackCheckbox.checked = !wallhackCheckbox.checked;
+        wallhackCheckbox.dispatchEvent(new Event('change'));
+    }
+    
+    // F3 - Toggle ESP
+    if (event.key === 'F3') {
+        event.preventDefault();
+        const espCheckbox = document.getElementById('esp');
+        espCheckbox.checked = !espCheckbox.checked;
+        espCheckbox.dispatchEvent(new Event('change'));
+    }
+    
+    // F4 - Toggle No Recoil
+    if (event.key === 'F4') {
+        event.preventDefault();
+        const noRecoilCheckbox = document.getElementById('noRecoil');
+        noRecoilCheckbox.checked = !noRecoilCheckbox.checked;
+        noRecoilCheckbox.dispatchEvent(new Event('change'));
+    }
+    
+    // F5 - Toggle God Mode
+    if (event.key === 'F5') {
+        event.preventDefault();
+        const godModeCheckbox = document.getElementById('godMode');
+        godModeCheckbox.checked = !godModeCheckbox.checked;
+        godModeCheckbox.dispatchEvent(new Event('change'));
+    }
+    
+    // F6 - Toggle Infinite Health
+    if (event.key === 'F6') {
+        event.preventDefault();
+        const infiniteHealthCheckbox = document.getElementById('infiniteHealth');
+        infiniteHealthCheckbox.checked = !infiniteHealthCheckbox.checked;
+        infiniteHealthCheckbox.dispatchEvent(new Event('change'));
+    }
+    
+    // F7 - Toggle Infinite Ammo
+    if (event.key === 'F7') {
+        event.preventDefault();
+        const infiniteAmmoCheckbox = document.getElementById('infiniteAmmo');
+        infiniteAmmoCheckbox.checked = !infiniteAmmoCheckbox.checked;
+        infiniteAmmoCheckbox.dispatchEvent(new Event('change'));
+    }
+    
+    // F8 - Toggle Speed Hack
+    if (event.key === 'F8') {
+        event.preventDefault();
+        const speedHackCheckbox = document.getElementById('speedHack');
+        speedHackCheckbox.checked = !speedHackCheckbox.checked;
+        speedHackCheckbox.dispatchEvent(new Event('change'));
+    }
+    
+    // F9 - Toggle Radar
+    if (event.key === 'F9') {
+        event.preventDefault();
+        toggleRadar();
+    }
+    
+    // F10 - Toggle Anti-Detection
+    if (event.key === 'F10') {
+        event.preventDefault();
+        toggleAntiDetection();
     }
 });
 
@@ -289,6 +410,143 @@ document.addEventListener('input', function(event) {
     }
 });
 
+// Toggle radar
+function toggleRadar() {
+    if (freeFireHack.activeHacks.has('radar')) {
+        freeFireHack.disableRadar();
+    } else {
+        freeFireHack.enableRadar();
+    }
+}
+
+// Toggle anti-detection
+function toggleAntiDetection() {
+    if (freeFireHack.antiDetection.enabled) {
+        freeFireHack.disableAntiDetection();
+    } else {
+        freeFireHack.enableAntiDetection();
+    }
+}
+
+// Add radar toggle button
+function addRadarToggle() {
+    const radarSection = document.createElement('div');
+    radarSection.className = 'hack-section';
+    radarSection.innerHTML = `
+        <h3><i class="fas fa-radar"></i> Advanced Features</h3>
+        <div class="hack-grid">
+            <div class="hack-item">
+                <label class="switch">
+                    <input type="checkbox" id="radar">
+                    <span class="slider"></span>
+                </label>
+                <span class="hack-label">Radar</span>
+            </div>
+            <div class="hack-item">
+                <label class="switch">
+                    <input type="checkbox" id="antiDetection" checked>
+                    <span class="slider"></span>
+                </label>
+                <span class="hack-label">Anti-Detection</span>
+            </div>
+        </div>
+    `;
+    
+    const hackPanel = document.querySelector('.hack-panel');
+    hackPanel.appendChild(radarSection);
+    
+    // Add event listeners
+    document.getElementById('radar').addEventListener('change', function() {
+        if (this.checked) {
+            freeFireHack.enableRadar();
+        } else {
+            freeFireHack.disableRadar();
+        }
+    });
+    
+    document.getElementById('antiDetection').addEventListener('change', function() {
+        if (this.checked) {
+            freeFireHack.enableAntiDetection();
+        } else {
+            freeFireHack.disableAntiDetection();
+        }
+    });
+}
+
+// Add hotkey display
+function addHotkeyDisplay() {
+    const hotkeyPanel = document.createElement('div');
+    hotkeyPanel.className = 'hotkey-panel';
+    hotkeyPanel.innerHTML = `
+        <h3><i class="fas fa-keyboard"></i> Hotkeys</h3>
+        <div class="hotkey-grid">
+            <div class="hotkey-item">
+                <span class="hotkey-key">F1</span>
+                <span class="hotkey-desc">Toggle Aimbot</span>
+            </div>
+            <div class="hotkey-item">
+                <span class="hotkey-key">F2</span>
+                <span class="hotkey-desc">Toggle Wallhack</span>
+            </div>
+            <div class="hotkey-item">
+                <span class="hotkey-key">F3</span>
+                <span class="hotkey-desc">Toggle ESP</span>
+            </div>
+            <div class="hotkey-item">
+                <span class="hotkey-key">F4</span>
+                <span class="hotkey-desc">Toggle No Recoil</span>
+            </div>
+            <div class="hotkey-item">
+                <span class="hotkey-key">F5</span>
+                <span class="hotkey-desc">Toggle God Mode</span>
+            </div>
+            <div class="hotkey-item">
+                <span class="hotkey-key">F6</span>
+                <span class="hotkey-desc">Toggle Infinite Health</span>
+            </div>
+            <div class="hotkey-item">
+                <span class="hotkey-key">F7</span>
+                <span class="hotkey-desc">Toggle Infinite Ammo</span>
+            </div>
+            <div class="hotkey-item">
+                <span class="hotkey-key">F8</span>
+                <span class="hotkey-desc">Toggle Speed Hack</span>
+            </div>
+            <div class="hotkey-item">
+                <span class="hotkey-key">F9</span>
+                <span class="hotkey-desc">Toggle Radar</span>
+            </div>
+            <div class="hotkey-item">
+                <span class="hotkey-key">F10</span>
+                <span class="hotkey-desc">Toggle Anti-Detection</span>
+            </div>
+            <div class="hotkey-item">
+                <span class="hotkey-key">Ctrl+R</span>
+                <span class="hotkey-desc">Reset All</span>
+            </div>
+            <div class="hotkey-item">
+                <span class="hotkey-key">Ctrl+C</span>
+                <span class="hotkey-desc">Connect</span>
+            </div>
+            <div class="hotkey-item">
+                <span class="hotkey-key">Ctrl+D</span>
+                <span class="hotkey-desc">Disconnect</span>
+            </div>
+        </div>
+    `;
+    
+    const hackPanel = document.querySelector('.hack-panel');
+    hackPanel.appendChild(hotkeyPanel);
+}
+
+// Initialize additional features
+function initializeAdditionalFeatures() {
+    addRadarToggle();
+    addHotkeyDisplay();
+}
+
 // Export functions for global access
 window.freeFireHack = freeFireHack;
 window.h5ggIntegration = h5ggIntegration;
+window.toggleRadar = toggleRadar;
+window.toggleAntiDetection = toggleAntiDetection;
