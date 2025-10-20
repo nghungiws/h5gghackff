@@ -435,3 +435,322 @@ input:checked + .slider:before {
 ::-webkit-scrollbar-thumb:hover {
     background: #555;
 }
+
+/* Hotkey panel styles */
+.hotkey-panel {
+    margin-top: 20px;
+}
+
+.hotkey-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.hotkey-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.hotkey-key {
+    background: #2c3e50;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    font-weight: bold;
+    min-width: 60px;
+    text-align: center;
+}
+
+.hotkey-desc {
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+/* ESP Canvas styles */
+#espCanvas {
+    pointer-events: none;
+    z-index: 9999;
+}
+
+/* Wallhack overlay styles */
+#wallhackOverlay {
+    pointer-events: none;
+    z-index: 9998;
+}
+
+/* Radar overlay styles */
+#radarOverlay {
+    pointer-events: none;
+    z-index: 10000;
+    border: 2px solid #00FF00;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+}
+
+/* Pulse animation for radar */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Status indicators */
+.status-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.status-indicator.connected {
+    background: #27ae60;
+    animation: pulse 2s infinite;
+}
+
+.status-indicator.disconnected {
+    background: #e74c3c;
+}
+
+.status-indicator.warning {
+    background: #f39c12;
+}
+
+/* Advanced settings panel */
+.advanced-settings {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.advanced-settings h3 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 1.4em;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+}
+
+.setting-group {
+    margin-bottom: 20px;
+}
+
+.setting-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.setting-group input[type="range"] {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.setting-group input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+/* Memory editor enhancements */
+.memory-editor {
+    background: #2c3e50;
+    color: #ecf0f1;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+.memory-editor h4 {
+    color: #3498db;
+    margin-bottom: 15px;
+}
+
+.memory-editor .memory-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.memory-editor .memory-row input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background: #34495e;
+    color: #ecf0f1;
+}
+
+.memory-editor .memory-row button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+/* Log entry types */
+.log-entry.log-success {
+    color: #27ae60;
+}
+
+.log-entry.log-error {
+    color: #e74c3c;
+}
+
+.log-entry.log-warning {
+    color: #f39c12;
+}
+
+.log-entry.log-info {
+    color: #3498db;
+}
+
+/* Level panel styles */
+.level-panel {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.level-panel h3 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 1.4em;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+}
+
+.level-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+.level-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.stat-label {
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.stat-value {
+    color: #27ae60;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.xp-bar {
+    width: 100%;
+    height: 20px;
+    background: #ecf0f1;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 20px 0;
+}
+
+.xp-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #3498db, #2ecc71);
+    border-radius: 10px;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.achievements h4 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+}
+
+.achievements-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.achievement-item {
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.achievement-item.unlocked {
+    background: #d5f4e6;
+    color: #27ae60;
+    border: 1px solid #27ae60;
+}
+
+.achievement-item.locked {
+    background: #f8f9fa;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+}
+
+.achievement-item.unlocked::before {
+    content: "✓ ";
+    font-weight: bold;
+}
+
+.achievement-item.locked::before {
+    content: "○ ";
+    font-weight: bold;
+}
+
+/* Responsive design for mobile */
+@media (max-width: 768px) {
+    .hotkey-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .hotkey-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .hotkey-key {
+        min-width: 80px;
+    }
+    
+    #radarOverlay {
+        width: 150px;
+        height: 150px;
+        top: 10px;
+        right: 10px;
+    }
+    
+    .level-info {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
