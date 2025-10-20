@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Fire H5GG Hack</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-fire"></i> Free Fire H5GG Hack</h1>
+            <p>Advanced HTML5 Game Guardian Integration</p>
+        </header>
+
+        <div class="status-panel">
+            <div class="status-item">
+                <span class="status-label">Game Status:</span>
+                <span id="gameStatus" class="status-value">Disconnected</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">H5GG Status:</span>
+                <span id="h5ggStatus" class="status-value">Not Connected</span>
+            </div>
+        </div>
+
+        <div class="hack-panel">
+            <div class="hack-section">
+                <h3><i class="fas fa-crosshairs"></i> Combat Hacks</h3>
+                <div class="hack-grid">
+                    <div class="hack-item">
+                        <label class="switch">
+                            <input type="checkbox" id="aimbot">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="hack-label">Aimbot</span>
+                    </div>
+                    <div class="hack-item">
+                        <label class="switch">
+                            <input type="checkbox" id="wallhack">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="hack-label">Wallhack</span>
+                    </div>
+                    <div class="hack-item">
+                        <label class="switch">
+                            <input type="checkbox" id="esp">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="hack-label">ESP</span>
+                    </div>
+                    <div class="hack-item">
+                        <label class="switch">
+                            <input type="checkbox" id="noRecoil">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="hack-label">No Recoil</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hack-section">
+                <h3><i class="fas fa-shield-alt"></i> Survival Hacks</h3>
+                <div class="hack-grid">
+                    <div class="hack-item">
+                        <label class="switch">
+                            <input type="checkbox" id="godMode">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="hack-label">God Mode</span>
+                    </div>
+                    <div class="hack-item">
+                        <label class="switch">
+                            <input type="checkbox" id="infiniteHealth">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="hack-label">Infinite Health</span>
+                    </div>
+                    <div class="hack-item">
+                        <label class="switch">
+                            <input type="checkbox" id="infiniteAmmo">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="hack-label">Infinite Ammo</span>
+                    </div>
+                    <div class="hack-item">
+                        <label class="switch">
+                            <input type="checkbox" id="speedHack">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="hack-label">Speed Hack</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hack-section">
+                <h3><i class="fas fa-cog"></i> Advanced Settings</h3>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <label for="aimbotFov">Aimbot FOV:</label>
+                        <input type="range" id="aimbotFov" min="10" max="180" value="90">
+                        <span id="fovValue">90°</span>
+                    </div>
+                    <div class="setting-item">
+                        <label for="aimbotSmooth">Aimbot Smooth:</label>
+                        <input type="range" id="aimbotSmooth" min="1" max="10" value="5">
+                        <span id="smoothValue">5</span>
+                    </div>
+                    <div class="setting-item">
+                        <label for="speedMultiplier">Speed Multiplier:</label>
+                        <input type="range" id="speedMultiplier" min="1" max="5" value="2" step="0.1">
+                        <span id="speedValue">2.0x</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="memory-panel">
+            <h3><i class="fas fa-memory"></i> Memory Editor</h3>
+            <div class="memory-controls">
+                <div class="memory-input">
+                    <input type="text" id="memoryAddress" placeholder="Memory Address (Hex)">
+                    <input type="text" id="memoryValue" placeholder="Value">
+                    <button id="writeMemory" class="btn btn-primary">Write</button>
+                    <button id="readMemory" class="btn btn-secondary">Read</button>
+                </div>
+                <div class="memory-search">
+                    <input type="text" id="searchValue" placeholder="Search Value">
+                    <button id="searchMemory" class="btn btn-info">Search</button>
+                </div>
+            </div>
+            <div id="memoryResults" class="memory-results"></div>
+        </div>
+
+        <div class="log-panel">
+            <h3><i class="fas fa-list"></i> Activity Log</h3>
+            <div id="logContainer" class="log-container">
+                <div class="log-entry">Hack initialized successfully</div>
+                <div class="log-entry">Waiting for game connection...</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <button id="connectBtn" class="btn btn-success">Connect to H5GG</button>
+            <button id="disconnectBtn" class="btn btn-danger">Disconnect</button>
+            <button id="resetBtn" class="btn btn-warning">Reset All</button>
+        </div>
+    </div>
+
+    <script src="h5gg-integration.js"></script>
+    <script src="hack-functions.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

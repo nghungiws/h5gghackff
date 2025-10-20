@@ -1,0 +1,182 @@
+{
+  "hackConfig": {
+    "version": "1.0.0",
+    "gameName": "Free Fire",
+    "processName": "com.dts.freefireth",
+    "description": "Free Fire H5GG Hack Configuration",
+    "author": "H5GG Hack Developer",
+    "lastUpdated": "2024-01-01"
+  },
+  "memoryAddresses": {
+    "playerData": {
+      "health": "0x12345678",
+      "armor": "0x12345679",
+      "positionX": "0x1234567A",
+      "positionY": "0x1234567B",
+      "positionZ": "0x1234567C",
+      "rotationX": "0x1234567D",
+      "rotationY": "0x1234567E",
+      "rotationZ": "0x1234567F",
+      "speed": "0x12345680"
+    },
+    "weaponData": {
+      "currentAmmo": "0x12345681",
+      "maxAmmo": "0x12345682",
+      "damage": "0x12345683",
+      "recoilX": "0x12345684",
+      "recoilY": "0x12345685",
+      "recoilZ": "0x12345686",
+      "fireRate": "0x12345687"
+    },
+    "gameState": {
+      "gameTime": "0x12345688",
+      "playerCount": "0x12345689",
+      "matchState": "0x1234568A",
+      "zoneCenterX": "0x1234568B",
+      "zoneCenterY": "0x1234568C",
+      "zoneRadius": "0x1234568D"
+    },
+    "espData": {
+      "enemyPositions": "0x1234568E",
+      "enemyHealth": "0x1234568F",
+      "enemyDistance": "0x12345690",
+      "enemyNames": "0x12345691",
+      "enemyWeapons": "0x12345692"
+    },
+    "aimbotData": {
+      "targetPlayer": "0x12345693",
+      "aimbotEnabled": "0x12345694",
+      "aimbotFOV": "0x12345695",
+      "aimbotSmooth": "0x12345696",
+      "aimbotBone": "0x12345697"
+    }
+  },
+  "hackSettings": {
+    "aimbot": {
+      "enabled": false,
+      "fov": 90,
+      "smooth": 5,
+      "bone": "head",
+      "keybind": "mouse1",
+      "maxDistance": 200
+    },
+    "wallhack": {
+      "enabled": false,
+      "enemyColor": "#FF0000",
+      "teammateColor": "#00FF00",
+      "boxStyle": "2d",
+      "showNames": true,
+      "showDistance": true
+    },
+    "esp": {
+      "enabled": false,
+      "showHealth": true,
+      "showArmor": true,
+      "showWeapon": true,
+      "showDistance": true,
+      "maxDistance": 300
+    },
+    "noRecoil": {
+      "enabled": false,
+      "strength": 100,
+      "weaponSpecific": true
+    },
+    "godMode": {
+      "enabled": false,
+      "healthValue": 999999,
+      "armorValue": 999999
+    },
+    "infiniteHealth": {
+      "enabled": false,
+      "healthValue": 100,
+      "updateInterval": 100
+    },
+    "infiniteAmmo": {
+      "enabled": false,
+      "ammoValue": 999,
+      "updateInterval": 50
+    },
+    "speedHack": {
+      "enabled": false,
+      "multiplier": 2.0,
+      "maxSpeed": 10.0,
+      "keybind": "shift"
+    }
+  },
+  "memoryRegions": [
+    {
+      "name": "Player Data",
+      "start": "0x10000000",
+      "end": "0x20000000",
+      "description": "Player health, position, rotation data",
+      "readOnly": false
+    },
+    {
+      "name": "Weapon Data",
+      "start": "0x20000000",
+      "end": "0x30000000",
+      "description": "Ammo count, weapon stats, recoil data",
+      "readOnly": false
+    },
+    {
+      "name": "Game State",
+      "start": "0x30000000",
+      "end": "0x40000000",
+      "description": "Game state, player count, match data",
+      "readOnly": true
+    },
+    {
+      "name": "UI Data",
+      "start": "0x40000000",
+      "end": "0x50000000",
+      "description": "UI elements, minimap, radar data",
+      "readOnly": true
+    }
+  ],
+  "keybinds": {
+    "toggleAimbot": "F1",
+    "toggleWallhack": "F2",
+    "toggleESP": "F3",
+    "toggleNoRecoil": "F4",
+    "toggleGodMode": "F5",
+    "toggleInfiniteHealth": "F6",
+    "toggleInfiniteAmmo": "F7",
+    "toggleSpeedHack": "F8",
+    "resetAll": "Ctrl+R",
+    "disconnect": "Ctrl+D",
+    "connect": "Ctrl+C"
+  },
+  "safety": {
+    "antiDetection": true,
+    "randomizeAddresses": true,
+    "delayBetweenWrites": 10,
+    "maxWritesPerSecond": 100,
+    "enableLogging": true,
+    "logLevel": "info"
+  },
+  "ui": {
+    "theme": "dark",
+    "language": "en",
+    "showAdvancedSettings": false,
+    "autoSaveSettings": true,
+    "showTooltips": true,
+    "compactMode": false
+  },
+  "advanced": {
+    "memorySearch": {
+      "maxResults": 1000,
+      "searchTimeout": 5000,
+      "enablePatternScan": true
+    },
+    "performance": {
+      "updateInterval": 16,
+      "maxMemoryOperations": 50,
+      "enableCaching": true
+    },
+    "debug": {
+      "enableConsoleLog": true,
+      "enableMemoryLog": false,
+      "logLevel": "debug"
+    }
+  }
+}
