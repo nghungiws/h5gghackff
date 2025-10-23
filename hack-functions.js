@@ -500,7 +500,9 @@ class FreeFireHack {
     enableNoRecoil() {
         this.log('No Recoil enabled', 'success');
         this.activeHacks.add('noRecoil');
-        this.writeMemory(this.memoryAddresses.recoil, 0);
+        this.startNoRecoilLoop();
+        this.addExperience(8);
+        this.updateStats('successfulHacks', 1);
     }
 
     disableNoRecoil() {
@@ -508,15 +510,68 @@ class FreeFireHack {
         this.activeHacks.delete('noRecoil');
     }
 
+    startNoRecoilLoop() {
+        if (!this.activeHacks.has('noRecoil')) return;
+
+        // Advanced no recoil with weapon-specific settings
+        this.applyNoRecoil();
+        
+        setTimeout(() => {
+            if (this.activeHacks.has('noRecoil')) {
+                this.startNoRecoilLoop();
+            }
+        }, 16); // 60 FPS
+    }
+
+    applyNoRecoil() {
+        // Set recoil to 0 for all weapons
+        this.writeMemory(this.memoryAddresses.recoil, 0);
+        
+        // Also disable weapon sway
+        this.writeMemory(this.memoryAddresses.recoil + 4, 0);
+        
+        // Disable camera shake
+        this.writeMemory(this.memoryAddresses.recoil + 8, 0);
+    }
+
     enableGodMode() {
         this.log('God Mode enabled', 'success');
         this.activeHacks.add('godMode');
-        this.writeMemory(this.memoryAddresses.health, 999999);
+        this.startGodModeLoop();
+        this.addExperience(15);
+        this.updateStats('successfulHacks', 1);
     }
 
     disableGodMode() {
         this.log('God Mode disabled', 'info');
         this.activeHacks.delete('godMode');
+    }
+
+    startGodModeLoop() {
+        if (!this.activeHacks.has('godMode')) return;
+
+        // Advanced god mode with multiple protections
+        this.applyGodMode();
+        
+        setTimeout(() => {
+            if (this.activeHacks.has('godMode')) {
+                this.startGodModeLoop();
+            }
+        }, 100);
+    }
+
+    applyGodMode() {
+        // Set health to maximum
+        this.writeMemory(this.memoryAddresses.health, 100);
+        
+        // Set armor to maximum
+        this.writeMemory(this.memoryAddresses.armor, 100);
+        
+        // Disable damage
+        this.writeMemory(this.memoryAddresses.health + 8, 0);
+        
+        // Disable fall damage
+        this.writeMemory(this.memoryAddresses.health + 12, 0);
     }
 
     enableInfiniteHealth() {
@@ -965,6 +1020,192 @@ class FreeFireHack {
     updateStats(stat, value) {
         if (this.levelSystem.stats.hasOwnProperty(stat)) {
             this.levelSystem.stats[stat] += value;
+        }
+    }
+
+    // New hack functions for additional features
+    enableAutoShoot() {
+        this.log('Auto Shoot enabled', 'success');
+        this.activeHacks.add('autoShoot');
+        this.startAutoShootLoop();
+        this.addExperience(12);
+        this.updateStats('successfulHacks', 1);
+    }
+
+    disableAutoShoot() {
+        this.log('Auto Shoot disabled', 'info');
+        this.activeHacks.delete('autoShoot');
+    }
+
+    startAutoShootLoop() {
+        if (!this.activeHacks.has('autoShoot')) return;
+
+        // Advanced auto shoot with target detection
+        this.findAndShootTarget();
+        
+        setTimeout(() => {
+            if (this.activeHacks.has('autoShoot')) {
+                this.startAutoShootLoop();
+            }
+        }, 50);
+    }
+
+    findAndShootTarget() {
+        const enemies = this.getEnemyList();
+        if (enemies.length > 0) {
+            const nearestEnemy = enemies.reduce((closest, enemy) => {
+                const distance = this.calculateDistance(enemy.position);
+                return distance < closest.distance ? { ...enemy, distance } : closest;
+            }, { distance: Infinity });
+            
+            if (nearestEnemy.distance <= 200) { // Within shooting range
+                this.autoShootAtTarget(nearestEnemy);
+            }
+        }
+    }
+
+    autoShootAtTarget(target) {
+        // Simulate auto shooting
+        this.log(`Auto shooting at ${target.name} (Distance: ${target.distance.toFixed(2)}m)`, 'info');
+        
+        // Trigger shooting mechanism
+        this.writeMemory(this.memoryAddresses.autoShoot, 1);
+    }
+
+    enableHeadshot() {
+        this.log('Headshot mode enabled', 'success');
+        this.activeHacks.add('headshot');
+        this.startHeadshotLoop();
+        this.addExperience(10);
+        this.updateStats('successfulHacks', 1);
+    }
+
+    disableHeadshot() {
+        this.log('Headshot mode disabled', 'info');
+        this.activeHacks.delete('headshot');
+    }
+
+    startHeadshotLoop() {
+        if (!this.activeHacks.has('headshot')) return;
+
+        // Advanced headshot targeting
+        this.aimForHead();
+        
+        setTimeout(() => {
+            if (this.activeHacks.has('headshot')) {
+                this.startHeadshotLoop();
+            }
+        }, 16);
+    }
+
+    aimForHead() {
+        const enemies = this.getEnemyList();
+        if (enemies.length > 0) {
+            const nearestEnemy = enemies.reduce((closest, enemy) => {
+                const distance = this.calculateDistance(enemy.position);
+                return distance < closest.distance ? { ...enemy, distance } : closest;
+            }, { distance: Infinity });
+            
+            if (nearestEnemy.distance <= this.settings.aimbotFov) {
+                // Aim for head position (adjust Y coordinate)
+                const headPosition = {
+                    x: nearestEnemy.position.x,
+                    y: nearestEnemy.position.y + 1.8, // Head is ~1.8m above body
+                    z: nearestEnemy.position.z
+                };
+                this.aimAtTarget({ ...nearestEnemy, position: headPosition });
+            }
+        }
+    }
+
+    enableInfiniteArmor() {
+        this.log('Infinite Armor enabled', 'success');
+        this.activeHacks.add('infiniteArmor');
+        this.startArmorLoop();
+        this.addExperience(8);
+        this.updateStats('successfulHacks', 1);
+    }
+
+    disableInfiniteArmor() {
+        this.log('Infinite Armor disabled', 'info');
+        this.activeHacks.delete('infiniteArmor');
+    }
+
+    startArmorLoop() {
+        if (!this.activeHacks.has('infiniteArmor')) return;
+
+        this.writeMemory(this.memoryAddresses.armor, 100);
+        
+        setTimeout(() => {
+            if (this.activeHacks.has('infiniteArmor')) {
+                this.startArmorLoop();
+            }
+        }, 100);
+    }
+
+    enableNoFallDamage() {
+        this.log('No Fall Damage enabled', 'success');
+        this.activeHacks.add('noFallDamage');
+        this.startNoFallDamageLoop();
+        this.addExperience(6);
+        this.updateStats('successfulHacks', 1);
+    }
+
+    disableNoFallDamage() {
+        this.log('No Fall Damage disabled', 'info');
+        this.activeHacks.delete('noFallDamage');
+    }
+
+    startNoFallDamageLoop() {
+        if (!this.activeHacks.has('noFallDamage')) return;
+
+        // Disable fall damage
+        this.writeMemory(this.memoryAddresses.noFallDamage, 1);
+        
+        setTimeout(() => {
+            if (this.activeHacks.has('noFallDamage')) {
+                this.startNoFallDamageLoop();
+            }
+        }, 50);
+    }
+
+    // Update hack status display
+    updateHackStatus(hackName, status) {
+        const statusElement = document.getElementById(`${hackName}Status`);
+        if (statusElement) {
+            statusElement.textContent = status ? 'ON' : 'OFF';
+            statusElement.className = `hack-status ${status ? 'active' : 'inactive'}`;
+        }
+    }
+
+    // Enhanced memory operations with better error handling
+    async safeMemoryOperation(operation, address, value, dataType = 'int32') {
+        try {
+            if (!this.h5ggConnected) {
+                this.log('H5GG not connected', 'error');
+                return false;
+            }
+
+            // Use H5GG integration for better compatibility
+            if (typeof h5ggIntegration !== 'undefined') {
+                if (operation === 'read') {
+                    const result = await h5ggIntegration.readMemory(address, dataType);
+                    return result ? result.value : null;
+                } else if (operation === 'write') {
+                    const result = await h5ggIntegration.writeMemory(address, value, dataType);
+                    return result ? result.success : false;
+                }
+            } else {
+                // Fallback to original method
+                if (operation === 'read') {
+                    return await this.readMemory(address);
+                } else if (operation === 'write') {
+                    return await this.writeMemory(address, value);
+                }
+            }
+        } catch (error) {
+            this.log(`Memory operation failed: ${error.message}`, 'error');
+            return false;
         }
     }
 
