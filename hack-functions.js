@@ -22,7 +22,9 @@ class FreeFireHack {
         this.settings = {
             aimbotFov: 90,
             aimbotSmooth: 5,
-            speedMultiplier: 2.0
+            speedMultiplier: 2.0,
+            espDistance: 200,
+            aimbotBone: 'head'
         };
         this.antiDetection = {
             enabled: true,
@@ -791,11 +793,14 @@ class FreeFireHack {
         this.settings.aimbotFov = parseInt(document.getElementById('aimbotFov').value);
         this.settings.aimbotSmooth = parseInt(document.getElementById('aimbotSmooth').value);
         this.settings.speedMultiplier = parseFloat(document.getElementById('speedMultiplier').value);
+        this.settings.espDistance = parseInt(document.getElementById('espDistance').value);
+        this.settings.aimbotBone = document.getElementById('aimbotBone').value;
 
         // Update display values
         document.getElementById('fovValue').textContent = `${this.settings.aimbotFov}°`;
         document.getElementById('smoothValue').textContent = this.settings.aimbotSmooth;
         document.getElementById('speedValue').textContent = `${this.settings.speedMultiplier}x`;
+        document.getElementById('espDistanceValue').textContent = `${this.settings.espDistance}m`;
 
         this.log('Settings updated', 'info');
     }
