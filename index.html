@@ -3,15 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Fire H5GG Hack</title>
+    <title>Free Fire H5GG Hack - Advanced Memory Editor</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        // H5GG Detection and Initialization
+        (function() {
+            window.h5ggReady = false;
+            window.h5ggAPI = null;
+            
+            // Check for H5GG availability
+            function checkH5GG() {
+                if (typeof window.h5gg !== 'undefined') {
+                    window.h5ggAPI = window.h5gg;
+                    window.h5ggReady = true;
+                    console.log('H5GG detected and ready');
+                    document.dispatchEvent(new CustomEvent('h5ggReady'));
+                } else {
+                    console.log('H5GG not detected, using simulation mode');
+                    // Create simulation API
+                    window.h5ggAPI = createSimulationAPI();
+                    window.h5ggReady = true;
+                    document.dispatchEvent(new CustomEvent('h5ggReady'));
+                }
+            }
+            
+            // Create simulation API for testing
+            function createSimulationAPI() {
+                return {
+                    readMemory: async (params) => {
+                        return { value: Math.floor(Math.random() * 1000), success: true };
+                    },
+                    writeMemory: async (params) => {
+                        return { success: Math.random() > 0.1 };
+                    },
+                    scanMemory: async (params) => {
+                        return { matches: [] };
+                    },
+                    scanPattern: async (params) => {
+                        return { matches: [] };
+                    },
+                    dumpMemory: async (params) => {
+                        return { data: new Uint8Array(1024) };
+                    },
+                    on: (event, callback) => {
+                        console.log(`H5GG event listener: ${event}`);
+                    }
+                };
+            }
+            
+            // Initialize when DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', checkH5GG);
+            } else {
+                checkH5GG();
+            }
+        })();
+    </script>
 </head>
 <body>
     <div class="container">
         <header class="header">
             <h1><i class="fas fa-fire"></i> Free Fire H5GG Hack</h1>
-            <p>Advanced HTML5 Game Guardian Integration</p>
+            <p>Advanced HTML5 Game Guardian Integration - Memory Editor & Hack Suite</p>
+            <div class="h5gg-status">
+                <span id="h5ggIndicator" class="status-indicator">Checking H5GG...</span>
+            </div>
         </header>
 
         <div class="status-panel">
@@ -22,6 +79,14 @@
             <div class="status-item">
                 <span class="status-label">H5GG Status:</span>
                 <span id="h5ggStatus" class="status-value">Not Connected</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Process ID:</span>
+                <span id="processId" class="status-value">N/A</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Memory Regions:</span>
+                <span id="memoryRegions" class="status-value">0</span>
             </div>
             <div class="status-item">
                 <span class="status-label">Level:</span>
@@ -43,6 +108,7 @@
                             <span class="slider"></span>
                         </label>
                         <span class="hack-label">Aimbot</span>
+                        <span class="hack-status" id="aimbotStatus">OFF</span>
                     </div>
                     <div class="hack-item">
                         <label class="switch">
@@ -50,6 +116,7 @@
                             <span class="slider"></span>
                         </label>
                         <span class="hack-label">Wallhack</span>
+                        <span class="hack-status" id="wallhackStatus">OFF</span>
                     </div>
                     <div class="hack-item">
                         <label class="switch">
@@ -57,6 +124,7 @@
                             <span class="slider"></span>
                         </label>
                         <span class="hack-label">ESP</span>
+                        <span class="hack-status" id="espStatus">OFF</span>
                     </div>
                     <div class="hack-item">
                         <label class="switch">
@@ -64,6 +132,23 @@
                             <span class="slider"></span>
                         </label>
                         <span class="hack-label">No Recoil</span>
+                        <span class="hack-status" id="noRecoilStatus">OFF</span>
+                    </div>
+                    <div class="hack-item">
+                        <label class="switch">
+                            <input type="checkbox" id="autoShoot">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="hack-label">Auto Shoot</span>
+                        <span class="hack-status" id="autoShootStatus">OFF</span>
+                    </div>
+                    <div class="hack-item">
+                        <label class="switch">
+                            <input type="checkbox" id="headshot">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="hack-label">Headshot</span>
+                        <span class="hack-status" id="headshotStatus">OFF</span>
                     </div>
                 </div>
             </div>
@@ -77,6 +162,7 @@
                             <span class="slider"></span>
                         </label>
                         <span class="hack-label">God Mode</span>
+                        <span class="hack-status" id="godModeStatus">OFF</span>
                     </div>
                     <div class="hack-item">
                         <label class="switch">
@@ -84,6 +170,7 @@
                             <span class="slider"></span>
                         </label>
                         <span class="hack-label">Infinite Health</span>
+                        <span class="hack-status" id="infiniteHealthStatus">OFF</span>
                     </div>
                     <div class="hack-item">
                         <label class="switch">
@@ -91,6 +178,7 @@
                             <span class="slider"></span>
                         </label>
                         <span class="hack-label">Infinite Ammo</span>
+                        <span class="hack-status" id="infiniteAmmoStatus">OFF</span>
                     </div>
                     <div class="hack-item">
                         <label class="switch">
@@ -98,6 +186,23 @@
                             <span class="slider"></span>
                         </label>
                         <span class="hack-label">Speed Hack</span>
+                        <span class="hack-status" id="speedHackStatus">OFF</span>
+                    </div>
+                    <div class="hack-item">
+                        <label class="switch">
+                            <input type="checkbox" id="infiniteArmor">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="hack-label">Infinite Armor</span>
+                        <span class="hack-status" id="infiniteArmorStatus">OFF</span>
+                    </div>
+                    <div class="hack-item">
+                        <label class="switch">
+                            <input type="checkbox" id="noFallDamage">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="hack-label">No Fall Damage</span>
+                        <span class="hack-status" id="noFallDamageStatus">OFF</span>
                     </div>
                 </div>
             </div>
@@ -120,6 +225,24 @@
                         <input type="range" id="speedMultiplier" min="1" max="5" value="2" step="0.1">
                         <span id="speedValue">2.0x</span>
                     </div>
+                    <div class="setting-item">
+                        <label for="espDistance">ESP Distance:</label>
+                        <input type="range" id="espDistance" min="50" max="500" value="200">
+                        <span id="espDistanceValue">200m</span>
+                    </div>
+                    <div class="setting-item">
+                        <label for="aimbotBone">Aimbot Bone:</label>
+                        <select id="aimbotBone">
+                            <option value="head">Head</option>
+                            <option value="chest">Chest</option>
+                            <option value="stomach">Stomach</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label for="antiDetection">Anti-Detection:</label>
+                        <input type="checkbox" id="antiDetection" checked>
+                        <span class="toggle-label">Enabled</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -128,17 +251,36 @@
             <h3><i class="fas fa-memory"></i> Memory Editor</h3>
             <div class="memory-controls">
                 <div class="memory-input">
-                    <input type="text" id="memoryAddress" placeholder="Memory Address (Hex)">
+                    <input type="text" id="memoryAddress" placeholder="Memory Address (Hex)" value="0x12345678">
                     <input type="text" id="memoryValue" placeholder="Value">
+                    <select id="dataType">
+                        <option value="int32">Int32</option>
+                        <option value="float">Float</option>
+                        <option value="double">Double</option>
+                        <option value="string">String</option>
+                        <option value="bytes">Bytes</option>
+                    </select>
                     <button id="writeMemory" class="btn btn-primary">Write</button>
                     <button id="readMemory" class="btn btn-secondary">Read</button>
                 </div>
                 <div class="memory-search">
                     <input type="text" id="searchValue" placeholder="Search Value">
+                    <select id="searchDataType">
+                        <option value="int32">Int32</option>
+                        <option value="float">Float</option>
+                        <option value="double">Double</option>
+                    </select>
                     <button id="searchMemory" class="btn btn-info">Search</button>
+                    <button id="clearSearch" class="btn btn-warning">Clear</button>
+                </div>
+                <div class="memory-actions">
+                    <button id="dumpMemory" class="btn btn-success">Dump Memory</button>
+                    <button id="scanPattern" class="btn btn-info">Scan Pattern</button>
+                    <button id="freezeValue" class="btn btn-danger">Freeze Value</button>
                 </div>
             </div>
             <div id="memoryResults" class="memory-results"></div>
+            <div id="memoryDump" class="memory-dump"></div>
         </div>
 
         <div class="level-panel">
@@ -186,11 +328,37 @@
             <button id="connectBtn" class="btn btn-success">Connect to H5GG</button>
             <button id="disconnectBtn" class="btn btn-danger">Disconnect</button>
             <button id="resetBtn" class="btn btn-warning">Reset All</button>
+            <button id="saveConfigBtn" class="btn btn-info">Save Config</button>
+            <button id="loadConfigBtn" class="btn btn-secondary">Load Config</button>
         </div>
     </div>
 
+    <!-- H5GG Integration Scripts -->
     <script src="h5gg-integration.js"></script>
     <script src="hack-functions.js"></script>
     <script src="main.js"></script>
+    
+    <!-- H5GG Ready Handler -->
+    <script>
+        document.addEventListener('h5ggReady', function() {
+            console.log('H5GG is ready, initializing application...');
+            document.getElementById('h5ggIndicator').textContent = 'H5GG Ready';
+            document.getElementById('h5ggIndicator').className = 'status-indicator ready';
+            
+            // Initialize the application
+            if (typeof initializeApp === 'function') {
+                initializeApp();
+            }
+        });
+        
+        // Auto-connect to H5GG when ready
+        document.addEventListener('h5ggReady', function() {
+            setTimeout(() => {
+                if (typeof connectToH5GG === 'function') {
+                    connectToH5GG();
+                }
+            }, 1000);
+        });
+    </script>
 </body>
 </html>

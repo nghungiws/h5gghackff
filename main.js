@@ -45,7 +45,11 @@ function setupHackToggles() {
         'godMode': { enable: () => freeFireHack.enableGodMode(), disable: () => freeFireHack.disableGodMode() },
         'infiniteHealth': { enable: () => freeFireHack.enableInfiniteHealth(), disable: () => freeFireHack.disableInfiniteHealth() },
         'infiniteAmmo': { enable: () => freeFireHack.enableInfiniteAmmo(), disable: () => freeFireHack.disableInfiniteAmmo() },
-        'speedHack': { enable: () => freeFireHack.enableSpeedHack(), disable: () => freeFireHack.disableSpeedHack() }
+        'speedHack': { enable: () => freeFireHack.enableSpeedHack(), disable: () => freeFireHack.disableSpeedHack() },
+        'autoShoot': { enable: () => freeFireHack.enableAutoShoot(), disable: () => freeFireHack.disableAutoShoot() },
+        'headshot': { enable: () => freeFireHack.enableHeadshot(), disable: () => freeFireHack.disableHeadshot() },
+        'infiniteArmor': { enable: () => freeFireHack.enableInfiniteArmor(), disable: () => freeFireHack.disableInfiniteArmor() },
+        'noFallDamage': { enable: () => freeFireHack.enableNoFallDamage(), disable: () => freeFireHack.disableNoFallDamage() }
     };
 
     Object.keys(hackToggles).forEach(hackId => {
@@ -54,8 +58,10 @@ function setupHackToggles() {
             checkbox.addEventListener('change', function() {
                 if (this.checked) {
                     hackToggles[hackId].enable();
+                    freeFireHack.updateHackStatus(hackId, true);
                 } else {
                     hackToggles[hackId].disable();
+                    freeFireHack.updateHackStatus(hackId, false);
                 }
             });
         }
@@ -63,16 +69,62 @@ function setupHackToggles() {
 }
 
 function setupSettingsSliders() {
-    const sliders = ['aimbotFov', 'aimbotSmooth', 'speedMultiplier'];
+    const sliders = ['aimbotFov', 'aimbotSmooth', 'speedMultiplier', 'espDistance'];
     
     sliders.forEach(sliderId => {
         const slider = document.getElementById(sliderId);
         if (slider) {
             slider.addEventListener('input', function() {
                 freeFireHack.updateSettings();
+                updateSliderDisplay(sliderId);
             });
         }
     });
+
+    // Setup aimbot bone selector
+    const aimbotBone = document.getElementById('aimbotBone');
+    if (aimbotBone) {
+        aimbotBone.addEventListener('change', function() {
+            freeFireHack.settings.aimbotBone = this.value;
+            freeFireHack.log(`Aimbot bone set to: ${this.value}`, 'info');
+        });
+    }
+
+    // Setup anti-detection toggle
+    const antiDetection = document.getElementById('antiDetection');
+    if (antiDetection) {
+        antiDetection.addEventListener('change', function() {
+            if (this.checked) {
+                freeFireHack.enableAntiDetection();
+            } else {
+                freeFireHack.disableAntiDetection();
+            }
+        });
+    }
+}
+
+function updateSliderDisplay(sliderId) {
+    const slider = document.getElementById(sliderId);
+    const displayId = sliderId + 'Value';
+    const display = document.getElementById(displayId);
+    
+    if (display) {
+        let value = slider.value;
+        switch (sliderId) {
+            case 'aimbotFov':
+                display.textContent = `${value}°`;
+                break;
+            case 'aimbotSmooth':
+                display.textContent = value;
+                break;
+            case 'speedMultiplier':
+                display.textContent = `${value}x`;
+                break;
+            case 'espDistance':
+                display.textContent = `${value}m`;
+                break;
+        }
+    }
 }
 
 function setupMemoryOperations() {
@@ -80,37 +132,44 @@ function setupMemoryOperations() {
     document.getElementById('writeMemory').addEventListener('click', async function() {
         const address = document.getElementById('memoryAddress').value;
         const value = document.getElementById('memoryValue').value;
+        const dataType = document.getElementById('dataType').value;
         
         if (!address || !value) {
             freeFireHack.log('Please enter both address and value', 'error');
             return;
         }
 
-        const result = await freeFireHack.writeMemory(address, value);
+        const result = await freeFireHack.safeMemoryOperation('write', address, value, dataType);
         if (result) {
-            freeFireHack.log(`Successfully wrote ${value} to ${address}`, 'success');
+            freeFireHack.log(`Successfully wrote ${value} to ${address} (${dataType})`, 'success');
+        } else {
+            freeFireHack.log(`Failed to write ${value} to ${address}`, 'error');
         }
     });
 
     // Memory read
     document.getElementById('readMemory').addEventListener('click', async function() {
         const address = document.getElementById('memoryAddress').value;
+        const dataType = document.getElementById('dataType').value;
         
         if (!address) {
             freeFireHack.log('Please enter an address', 'error');
             return;
         }
 
-        const value = await freeFireHack.readMemory(address);
+        const value = await freeFireHack.safeMemoryOperation('read', address, null, dataType);
         if (value !== null) {
             document.getElementById('memoryValue').value = value;
-            freeFireHack.log(`Read value ${value} from ${address}`, 'success');
+            freeFireHack.log(`Read value ${value} from ${address} (${dataType})`, 'success');
+        } else {
+            freeFireHack.log(`Failed to read from ${address}`, 'error');
         }
     });
 
     // Memory search
     document.getElementById('searchMemory').addEventListener('click', async function() {
         const value = document.getElementById('searchValue').value;
+        const dataType = document.getElementById('searchDataType').value;
         
         if (!value) {
             freeFireHack.log('Please enter a search value', 'error');
@@ -119,6 +178,76 @@ function setupMemoryOperations() {
 
         const results = await freeFireHack.searchMemory(value);
         displayMemoryResults(results);
+    });
+
+    // Clear search results
+    document.getElementById('clearSearch').addEventListener('click', function() {
+        document.getElementById('memoryResults').innerHTML = '';
+        freeFireHack.log('Search results cleared', 'info');
+    });
+
+    // Dump memory
+    document.getElementById('dumpMemory').addEventListener('click', async function() {
+        const address = document.getElementById('memoryAddress').value;
+        if (!address) {
+            freeFireHack.log('Please enter an address to dump', 'error');
+            return;
+        }
+
+        freeFireHack.log('Dumping memory...', 'info');
+        if (typeof h5ggIntegration !== 'undefined') {
+            const dump = await h5ggIntegration.dumpMemory(parseInt(address, 16), 1024);
+            if (dump) {
+                displayMemoryDump(dump, address);
+                freeFireHack.log('Memory dump completed', 'success');
+            } else {
+                freeFireHack.log('Memory dump failed', 'error');
+            }
+        } else {
+            freeFireHack.log('H5GG integration not available', 'error');
+        }
+    });
+
+    // Scan pattern
+    document.getElementById('scanPattern').addEventListener('click', async function() {
+        const pattern = prompt('Enter pattern (hex):', '48 65 6C 6C 6F');
+        const mask = prompt('Enter mask (x = wildcard):', 'xx xx xx xx xx');
+        
+        if (pattern && mask) {
+            freeFireHack.log('Scanning for pattern...', 'info');
+            if (typeof h5ggIntegration !== 'undefined') {
+                const results = await h5ggIntegration.scanPattern(pattern, mask);
+                displayMemoryResults(results);
+                freeFireHack.log(`Found ${results.length} pattern matches`, 'success');
+            } else {
+                freeFireHack.log('H5GG integration not available', 'error');
+            }
+        }
+    });
+
+    // Freeze value
+    document.getElementById('freezeValue').addEventListener('click', function() {
+        const address = document.getElementById('memoryAddress').value;
+        const value = document.getElementById('memoryValue').value;
+        const dataType = document.getElementById('dataType').value;
+        
+        if (!address || !value) {
+            freeFireHack.log('Please enter address and value to freeze', 'error');
+            return;
+        }
+
+        if (!freeFireHack.freezeInterval) {
+            freeFireHack.freezeInterval = setInterval(async () => {
+                await freeFireHack.safeMemoryOperation('write', address, value, dataType);
+            }, 100);
+            freeFireHack.log(`Freezing value ${value} at ${address}`, 'success');
+            this.textContent = 'Unfreeze Value';
+        } else {
+            clearInterval(freeFireHack.freezeInterval);
+            freeFireHack.freezeInterval = null;
+            freeFireHack.log('Value unfrozen', 'info');
+            this.textContent = 'Freeze Value';
+        }
     });
 }
 
@@ -131,11 +260,59 @@ function displayMemoryResults(results) {
         return;
     }
 
-    results.forEach(result => {
+    results.forEach((result, index) => {
         const resultDiv = document.createElement('div');
-        resultDiv.textContent = `Address: ${result.address} | Value: ${result.value}`;
+        resultDiv.className = 'memory-result-item';
+        resultDiv.innerHTML = `
+            <div class="result-address">${result.address}</div>
+            <div class="result-value">${result.value}</div>
+            <div class="result-actions">
+                <button onclick="selectAddress('${result.address}', '${result.value}')" class="btn btn-sm btn-primary">Select</button>
+                <button onclick="writeToAddress('${result.address}')" class="btn btn-sm btn-success">Write</button>
+            </div>
+        `;
         resultsContainer.appendChild(resultDiv);
     });
+}
+
+function displayMemoryDump(dump, address) {
+    const dumpContainer = document.getElementById('memoryDump');
+    dumpContainer.innerHTML = '';
+    
+    const dumpDiv = document.createElement('div');
+    dumpDiv.className = 'memory-dump-content';
+    dumpDiv.innerHTML = `
+        <h4>Memory Dump at ${address}</h4>
+        <div class="dump-hex">${formatHexDump(dump)}</div>
+    `;
+    dumpContainer.appendChild(dumpDiv);
+}
+
+function formatHexDump(data) {
+    let hex = '';
+    for (let i = 0; i < Math.min(data.length, 256); i += 16) {
+        let line = '';
+        for (let j = 0; j < 16; j++) {
+            if (i + j < data.length) {
+                line += data[i + j].toString(16).padStart(2, '0') + ' ';
+            } else {
+                line += '   ';
+            }
+        }
+        hex += line + '\n';
+    }
+    return hex;
+}
+
+function selectAddress(address, value) {
+    document.getElementById('memoryAddress').value = address;
+    document.getElementById('memoryValue').value = value;
+    freeFireHack.log(`Selected address ${address} with value ${value}`, 'info');
+}
+
+function writeToAddress(address) {
+    document.getElementById('memoryAddress').value = address;
+    freeFireHack.log(`Address ${address} selected for writing`, 'info');
 }
 
 async function connectToH5GG() {
@@ -370,6 +547,38 @@ document.addEventListener('keydown', function(event) {
         event.preventDefault();
         toggleAntiDetection();
     }
+    
+    // F11 - Toggle Auto Shoot
+    if (event.key === 'F11') {
+        event.preventDefault();
+        const autoShootCheckbox = document.getElementById('autoShoot');
+        autoShootCheckbox.checked = !autoShootCheckbox.checked;
+        autoShootCheckbox.dispatchEvent(new Event('change'));
+    }
+    
+    // F12 - Toggle Headshot
+    if (event.key === 'F12') {
+        event.preventDefault();
+        const headshotCheckbox = document.getElementById('headshot');
+        headshotCheckbox.checked = !headshotCheckbox.checked;
+        headshotCheckbox.dispatchEvent(new Event('change'));
+    }
+    
+    // Ctrl + 1 - Toggle Infinite Armor
+    if (event.ctrlKey && event.key === '1') {
+        event.preventDefault();
+        const infiniteArmorCheckbox = document.getElementById('infiniteArmor');
+        infiniteArmorCheckbox.checked = !infiniteArmorCheckbox.checked;
+        infiniteArmorCheckbox.dispatchEvent(new Event('change'));
+    }
+    
+    // Ctrl + 2 - Toggle No Fall Damage
+    if (event.ctrlKey && event.key === '2') {
+        event.preventDefault();
+        const noFallDamageCheckbox = document.getElementById('noFallDamage');
+        noFallDamageCheckbox.checked = !noFallDamageCheckbox.checked;
+        noFallDamageCheckbox.dispatchEvent(new Event('change'));
+    }
 });
 
 // Auto-save settings
@@ -543,6 +752,108 @@ function addHotkeyDisplay() {
 function initializeAdditionalFeatures() {
     addRadarToggle();
     addHotkeyDisplay();
+    setupConfigButtons();
+}
+
+// Setup config save/load buttons
+function setupConfigButtons() {
+    document.getElementById('saveConfigBtn').addEventListener('click', saveConfig);
+    document.getElementById('loadConfigBtn').addEventListener('click', loadConfig);
+}
+
+// Save configuration
+function saveConfig() {
+    const config = {
+        settings: freeFireHack.settings,
+        hacks: Array.from(freeFireHack.activeHacks),
+        memoryAddresses: freeFireHack.memoryAddresses,
+        antiDetection: freeFireHack.antiDetection,
+        levelSystem: freeFireHack.levelSystem
+    };
+    
+    const configString = JSON.stringify(config, null, 2);
+    const blob = new Blob([configString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'freefire_h5gg_config.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    freeFireHack.log('Configuration saved successfully', 'success');
+}
+
+// Load configuration
+function loadConfig() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    
+    input.onchange = function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const config = JSON.parse(e.target.result);
+                    
+                    // Load settings
+                    if (config.settings) {
+                        freeFireHack.settings = { ...freeFireHack.settings, ...config.settings };
+                        updateSettingsUI();
+                    }
+                    
+                    // Load hacks
+                    if (config.hacks) {
+                        config.hacks.forEach(hackName => {
+                            const checkbox = document.getElementById(hackName);
+                            if (checkbox) {
+                                checkbox.checked = true;
+                                checkbox.dispatchEvent(new Event('change'));
+                            }
+                        });
+                    }
+                    
+                    // Load memory addresses
+                    if (config.memoryAddresses) {
+                        freeFireHack.memoryAddresses = { ...freeFireHack.memoryAddresses, ...config.memoryAddresses };
+                    }
+                    
+                    // Load anti-detection settings
+                    if (config.antiDetection) {
+                        freeFireHack.antiDetection = { ...freeFireHack.antiDetection, ...config.antiDetection };
+                    }
+                    
+                    freeFireHack.log('Configuration loaded successfully', 'success');
+                } catch (error) {
+                    freeFireHack.log(`Failed to load configuration: ${error.message}`, 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+    };
+    
+    input.click();
+}
+
+// Update settings UI
+function updateSettingsUI() {
+    document.getElementById('aimbotFov').value = freeFireHack.settings.aimbotFov || 90;
+    document.getElementById('aimbotSmooth').value = freeFireHack.settings.aimbotSmooth || 5;
+    document.getElementById('speedMultiplier').value = freeFireHack.settings.speedMultiplier || 2.0;
+    document.getElementById('espDistance').value = freeFireHack.settings.espDistance || 200;
+    
+    if (freeFireHack.settings.aimbotBone) {
+        document.getElementById('aimbotBone').value = freeFireHack.settings.aimbotBone;
+    }
+    
+    updateSliderDisplay('aimbotFov');
+    updateSliderDisplay('aimbotSmooth');
+    updateSliderDisplay('speedMultiplier');
+    updateSliderDisplay('espDistance');
 }
 
 // Export functions for global access

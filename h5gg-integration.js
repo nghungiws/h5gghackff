@@ -105,25 +105,57 @@ class H5GGIntegration {
                 name: 'Player Data',
                 start: 0x10000000,
                 end: 0x20000000,
-                description: 'Player health, position, rotation data'
+                description: 'Player health, position, rotation, level, XP data',
+                readOnly: false,
+                protection: 'PAGE_READWRITE'
             },
             {
                 name: 'Weapon Data',
                 start: 0x20000000,
                 end: 0x30000000,
-                description: 'Ammo count, weapon stats, recoil data'
+                description: 'Ammo count, weapon stats, recoil, damage data',
+                readOnly: false,
+                protection: 'PAGE_READWRITE'
             },
             {
                 name: 'Game State',
                 start: 0x30000000,
                 end: 0x40000000,
-                description: 'Game state, player count, match data'
+                description: 'Game state, player count, match data, zone info',
+                readOnly: false,
+                protection: 'PAGE_READWRITE'
+            },
+            {
+                name: 'Enemy Data',
+                start: 0x40000000,
+                end: 0x50000000,
+                description: 'Enemy positions, health, names, weapons',
+                readOnly: false,
+                protection: 'PAGE_READWRITE'
+            },
+            {
+                name: 'Aimbot Data',
+                start: 0x50000000,
+                end: 0x60000000,
+                description: 'Aimbot settings, target data, FOV settings',
+                readOnly: false,
+                protection: 'PAGE_READWRITE'
+            },
+            {
+                name: 'Hack Flags',
+                start: 0x60000000,
+                end: 0x70000000,
+                description: 'Hack enable/disable flags and settings',
+                readOnly: false,
+                protection: 'PAGE_READWRITE'
             },
             {
                 name: 'UI Data',
-                start: 0x40000000,
-                end: 0x50000000,
-                description: 'UI elements, minimap, radar data'
+                start: 0x70000000,
+                end: 0x80000000,
+                description: 'UI elements, minimap, radar data',
+                readOnly: true,
+                protection: 'PAGE_READONLY'
             }
         ];
     }
@@ -527,37 +559,219 @@ class H5GGIntegration {
         return dump;
     }
 
-    // Free Fire specific memory addresses (simulated)
+    // Free Fire specific memory addresses (updated for better compatibility)
     getFreeFireAddresses() {
         return {
             // Player data
-            playerHealth: 0x12345678,
-            playerArmor: 0x12345679,
-            playerPosition: 0x1234567A,
-            playerRotation: 0x1234567B,
-            playerSpeed: 0x1234567C,
+            playerHealth: 0x10000000,
+            playerArmor: 0x10000004,
+            playerPosition: 0x10000008,
+            playerRotation: 0x1000000C,
+            playerSpeed: 0x10000010,
+            playerLevel: 0x10000014,
+            playerXP: 0x10000018,
+            playerMoney: 0x1000001C,
             
             // Weapon data
-            currentAmmo: 0x1234567D,
-            maxAmmo: 0x1234567E,
-            weaponDamage: 0x1234567F,
-            weaponRecoil: 0x12345680,
+            currentAmmo: 0x20000000,
+            maxAmmo: 0x20000004,
+            weaponDamage: 0x20000008,
+            weaponRecoil: 0x2000000C,
+            weaponRange: 0x20000010,
+            weaponAccuracy: 0x20000014,
+            weaponFireRate: 0x20000018,
             
             // Game state
-            gameTime: 0x12345681,
-            playerCount: 0x12345682,
-            matchState: 0x12345683,
+            gameTime: 0x30000000,
+            playerCount: 0x30000004,
+            matchState: 0x30000008,
+            gameMode: 0x3000000C,
+            zonePosition: 0x30000010,
+            zoneRadius: 0x30000014,
             
             // ESP data
-            enemyPositions: 0x12345684,
-            enemyHealth: 0x12345685,
-            enemyDistance: 0x12345686,
+            enemyPositions: 0x40000000,
+            enemyHealth: 0x40000004,
+            enemyDistance: 0x40000008,
+            enemyNames: 0x4000000C,
+            enemyWeapons: 0x40000010,
+            enemyArmor: 0x40000014,
             
             // Aimbot data
-            targetPlayer: 0x12345687,
-            aimbotEnabled: 0x12345688,
-            aimbotFOV: 0x12345689
+            targetPlayer: 0x50000000,
+            aimbotEnabled: 0x50000004,
+            aimbotFOV: 0x50000008,
+            aimbotSmooth: 0x5000000C,
+            aimbotBone: 0x50000010,
+            
+            // Advanced features
+            wallhackEnabled: 0x60000000,
+            espEnabled: 0x60000004,
+            radarEnabled: 0x60000008,
+            speedHackEnabled: 0x6000000C,
+            godModeEnabled: 0x60000010,
+            infiniteAmmoEnabled: 0x60000014,
+            noRecoilEnabled: 0x60000018,
+            autoShootEnabled: 0x6000001C,
+            headshotEnabled: 0x60000020,
+            infiniteArmorEnabled: 0x60000024,
+            noFallDamageEnabled: 0x60000028
         };
+    }
+
+    // Free Fire specific methods
+    async getPlayerInfo() {
+        try {
+            const addresses = this.getFreeFireAddresses();
+            const playerInfo = {};
+            
+            // Read player data
+            playerInfo.health = await this.readMemory(addresses.playerHealth, 'int32');
+            playerInfo.armor = await this.readMemory(addresses.playerArmor, 'int32');
+            playerInfo.level = await this.readMemory(addresses.playerLevel, 'int32');
+            playerInfo.xp = await this.readMemory(addresses.playerXP, 'int32');
+            playerInfo.money = await this.readMemory(addresses.playerMoney, 'int32');
+            
+            // Read position data
+            const posX = await this.readMemory(addresses.playerPosition, 'float');
+            const posY = await this.readMemory(addresses.playerPosition + 4, 'float');
+            const posZ = await this.readMemory(addresses.playerPosition + 8, 'float');
+            playerInfo.position = { x: posX, y: posY, z: posZ };
+            
+            // Read rotation data
+            const rotX = await this.readMemory(addresses.playerRotation, 'float');
+            const rotY = await this.readMemory(addresses.playerRotation + 4, 'float');
+            const rotZ = await this.readMemory(addresses.playerRotation + 8, 'float');
+            playerInfo.rotation = { x: rotX, y: rotY, z: rotZ };
+            
+            return playerInfo;
+        } catch (error) {
+            console.error('Failed to get player info:', error);
+            return null;
+        }
+    }
+
+    async getWeaponInfo() {
+        try {
+            const addresses = this.getFreeFireAddresses();
+            const weaponInfo = {};
+            
+            weaponInfo.currentAmmo = await this.readMemory(addresses.currentAmmo, 'int32');
+            weaponInfo.maxAmmo = await this.readMemory(addresses.maxAmmo, 'int32');
+            weaponInfo.damage = await this.readMemory(addresses.weaponDamage, 'float');
+            weaponInfo.recoil = await this.readMemory(addresses.weaponRecoil, 'float');
+            weaponInfo.range = await this.readMemory(addresses.weaponRange, 'float');
+            weaponInfo.accuracy = await this.readMemory(addresses.weaponAccuracy, 'float');
+            weaponInfo.fireRate = await this.readMemory(addresses.weaponFireRate, 'float');
+            
+            return weaponInfo;
+        } catch (error) {
+            console.error('Failed to get weapon info:', error);
+            return null;
+        }
+    }
+
+    async getEnemyList() {
+        try {
+            const addresses = this.getFreeFireAddresses();
+            const enemies = [];
+            const maxEnemies = 50; // Maximum number of enemies to scan
+            
+            for (let i = 0; i < maxEnemies; i++) {
+                const baseOffset = i * 0x100; // 256 bytes per enemy
+                
+                // Read enemy data
+                const health = await this.readMemory(addresses.enemyPositions + baseOffset, 'int32');
+                if (health > 0 && health <= 100) { // Valid health range
+                    const enemy = {
+                        id: i,
+                        health: health,
+                        armor: await this.readMemory(addresses.enemyHealth + baseOffset, 'int32'),
+                        distance: await this.readMemory(addresses.enemyDistance + baseOffset, 'float'),
+                        position: {
+                            x: await this.readMemory(addresses.enemyPositions + baseOffset + 4, 'float'),
+                            y: await this.readMemory(addresses.enemyPositions + baseOffset + 8, 'float'),
+                            z: await this.readMemory(addresses.enemyPositions + baseOffset + 12, 'float')
+                        }
+                    };
+                    enemies.push(enemy);
+                }
+            }
+            
+            return enemies;
+        } catch (error) {
+            console.error('Failed to get enemy list:', error);
+            return [];
+        }
+    }
+
+    async setPlayerHealth(value) {
+        const addresses = this.getFreeFireAddresses();
+        return await this.writeMemory(addresses.playerHealth, value, 'int32');
+    }
+
+    async setPlayerArmor(value) {
+        const addresses = this.getFreeFireAddresses();
+        return await this.writeMemory(addresses.playerArmor, value, 'int32');
+    }
+
+    async setPlayerSpeed(multiplier) {
+        const addresses = this.getFreeFireAddresses();
+        return await this.writeMemory(addresses.playerSpeed, multiplier, 'float');
+    }
+
+    async setWeaponAmmo(value) {
+        const addresses = this.getFreeFireAddresses();
+        return await this.writeMemory(addresses.currentAmmo, value, 'int32');
+    }
+
+    async setWeaponRecoil(value) {
+        const addresses = this.getFreeFireAddresses();
+        return await this.writeMemory(addresses.weaponRecoil, value, 'float');
+    }
+
+    async enableHack(hackName) {
+        const addresses = this.getFreeFireAddresses();
+        const hackFlags = {
+            'wallhack': addresses.wallhackEnabled,
+            'esp': addresses.espEnabled,
+            'radar': addresses.radarEnabled,
+            'speedHack': addresses.speedHackEnabled,
+            'godMode': addresses.godModeEnabled,
+            'infiniteAmmo': addresses.infiniteAmmoEnabled,
+            'noRecoil': addresses.noRecoilEnabled,
+            'autoShoot': addresses.autoShootEnabled,
+            'headshot': addresses.headshotEnabled,
+            'infiniteArmor': addresses.infiniteArmorEnabled,
+            'noFallDamage': addresses.noFallDamageEnabled
+        };
+        
+        if (hackFlags[hackName]) {
+            return await this.writeMemory(hackFlags[hackName], 1, 'int32');
+        }
+        return false;
+    }
+
+    async disableHack(hackName) {
+        const addresses = this.getFreeFireAddresses();
+        const hackFlags = {
+            'wallhack': addresses.wallhackEnabled,
+            'esp': addresses.espEnabled,
+            'radar': addresses.radarEnabled,
+            'speedHack': addresses.speedHackEnabled,
+            'godMode': addresses.godModeEnabled,
+            'infiniteAmmo': addresses.infiniteAmmoEnabled,
+            'noRecoil': addresses.noRecoilEnabled,
+            'autoShoot': addresses.autoShootEnabled,
+            'headshot': addresses.headshotEnabled,
+            'infiniteArmor': addresses.infiniteArmorEnabled,
+            'noFallDamage': addresses.noFallDamageEnabled
+        };
+        
+        if (hackFlags[hackName]) {
+            return await this.writeMemory(hackFlags[hackName], 0, 'int32');
+        }
+        return false;
     }
 
     // Disconnect from game
